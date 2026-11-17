@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Master Compass Germany</title>
+  <meta name="claude:viewport-fit-sides" content="cover" />
+  <meta name="description" content="Check whether you meet the admission requirements of German master's programmes in business and economics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <h1>Master Compass</h1>
+        <p class="tagline">Business &amp; economics master's programmes in Germany, checked against your profile.</p>
+      </div>
+      <p class="meta" id="meta"></p>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <!-- ================= PROFILE ================= -->
+    <aside class="profile" aria-labelledby="profile-title">
+      <div class="profile-head">
+        <h2 id="profile-title">Your profile</h2>
+        <button type="button" class="link-btn" id="reset-profile">Reset</button>
+      </div>
+      <a class="jump-results" href="#results">See your results ↓</a>
+
+      <!-- 1. Degree -->
+      <details class="sec" data-sec="degree">
+        <summary><span class="sec-title">Bachelor's degree</span><span class="sec-sum" id="sum-degree"></span></summary>
+        <div class="sec-body">
+          <label>Field of study
+            <select id="p-field" data-key="field">
+              <option value="business">Business administration</option>
+              <option value="economics">Economics</option>
+              <option value="finance">Finance / banking</option>
+              <option value="quantitative">Math, statistics, engineering or CS</option>
+              <option value="social">Other social sciences</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <div class="row-2">
+            <label>Total ECTS
+              <input id="p-total" type="number" min="0" inputmode="numeric" data-key="totalEcts" />
+            </label>
+            <label>Status
+              <select id="p-finished" data-key="finished">
+                <option value="no">Still studying</option>
+                <option value="yes">Graduated</option>
+              </select>
+            </label>
+          </div>
+          <label class="completed-wrap">ECTS completed so far
+            <input id="p-completed" type="number" min="0" inputmode="numeric" data-key="completedEcts" placeholder="e.g. 200" />
+          </label>
+          <label>Citizenship
+            <select id="p-citizenship" data-key="citizenship">
+              <option value="nonEU">Non-EU (e.g. Turkey)</option>
+              <option value="eu">EU / EEA</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <!-- 2. Grade -->
+      <details class="sec" data-sec="grade">
+        <summary><span class="sec-title">German grade</span><span class="sec-sum" id="sum-grade"></span></summary>
+        <div class="sec-body">
+          <label>Source
+            <select id="p-grade-source" data-key="gradeSource">
+              <option value="calc">Calculate it from my GPA</option>
+              <option value="vpd">I have it from uni-assist (VPD)</option>
+            </select>
+          </label>
+          <div class="vpd-wrap">
+            <label>Overall grade on your VPD
+              <input id="p-vpd-grade" type="number" step="0.1" min="1" max="4" data-key="vpdGrade" placeholder="e.g. 2.4" />
+            </label>
+            <p class="hint">Universities rank you with this value, so it replaces our estimate.</p>
+          </div>
+          <div class="calc-wrap">
+            <div class="row-2">
+              <label>Scale
+                <select id="p-grade-scale" data-key="gradeScale">
+                  <option value="tr4">4.00 scale</option>
+                  <option value="100">100-point scale</option>
+                  <option value="de">German grade</option>
+                </select>
+              </label>
+              <label>Your GPA
+                <input id="p-grade" type="number" step="0.01" min="0" data-key="grade" placeholder="e.g. 3.20" />
+              </label>
+            </div>
+            <label class="grade-min-wrap">Minimum grade to graduate
+              <input id="p-grade-min" type="number" step="0.01" min="0" data-key="gradeMin" />
+              <span class="hint">From your Diploma Supplement (4.2). Usually 2.00 on the 4.00 scale.</span>
+            </label>
+          </div>
+          <p class="grade-out" id="grade-out" aria-live="polite"></p>
+        </div>
+      </details>
+
+      <!-- 3. Credits -->
+      <details class="sec" data-sec="credits">
+        <summary><span class="sec-title">Credits by subject</span><span class="sec-sum" id="sum-credits"></span></summary>
+        <div class="sec-body">
+          <p class="hint">ECTS from your transcript. Count each course once.</p>
+          <div class="ects-group">
+            <div class="ects-group-title">Business &amp; economics</div>
+            <label class="ects-row" for="e-business"><span>Business administration</span>
+              <input id="e-business" type="number" min="0" inputmode="numeric" data-key="ects.business" placeholder="0" /></label>
+            <label class="ects-row sub" for="e-accounting"><span>of which accounting, finance &amp; tax</span>
+              <input id="e-accounting" type="number" min="0" inputmode="numeric" data-key="ects.accounting" placeholder="0" /></label>
+            <label class="ects-row" for="e-economics"><span>Economics <small>(micro, macro)</small></span>
+              <input id="e-economics" type="number" min="0" inputmode="numeric" data-key="ects.economics" placeholder="0" /></label>
+          </div>
+          <div class="ects-group">
+            <div class="ects-group-title">Quantitative</div>
+            <label class="ects-row" for="e-math"><span>Mathematics</span>
+              <input id="e-math" type="number" min="0" inputmode="numeric" data-key="ects.math" placeholder="0" /></label>
+            <label class="ects-row" for="e-statistics"><span>Statistics &amp; econometrics</span>
+              <input id="e-statistics" type="number" min="0" inputmode="numeric" data-key="ects.statistics" placeholder="0" /></label>
+          </div>
+          <div class="ects-group">
+            <div class="ects-group-title">Technical</div>
+            <label class="ects-row" for="e-informatics"><span>Informatics &amp; IS</span>
+              <input id="e-informatics" type="number" min="0" inputmode="numeric" data-key="ects.informatics" placeholder="0" /></label>
+            <label class="ects-row" for="e-engineering"><span>Engineering &amp; sciences</span>
+              <input id="e-engineering" type="number" min="0" inputmode="numeric" data-key="ects.engineering" placeholder="0" /></label>
+          </div>
+          <p class="ects-total" id="ects-total" aria-live="polite"></p>
+        </div>
+      </details>
+
+      <!-- 4. Languages & tests -->
+      <details class="sec" data-sec="lang">
+        <summary><span class="sec-title">Languages &amp; tests</span><span class="sec-sum" id="sum-lang"></span></summary>
+        <div class="sec-body">
+          <div class="row-2">
+            <label>English
+              <select id="p-english" data-key="englishType">
+                <option value="none">No certificate yet</option>
+                <option value="ielts">IELTS Academic</option>
+                <option value="toefl">TOEFL iBT (0–120)</option>
+                <option value="toeflBand">TOEFL iBT (band 1–6)</option>
+                <option value="medium">English-taught bachelor</option>
+              </select>
+            </label>
+            <label class="english-score-wrap">Score
+              <input id="p-english-score" type="number" step="0.5" min="0" data-key="englishScore" />
+            </label>
+          </div>
+          <label>German (certified)
+            <select id="p-german" data-key="german">
+              <option value="none">None</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1 (DSH-2 / TestDaF 4×4)</option>
+              <option value="C2">C2</option>
+            </select>
+          </label>
+          <div class="row-2">
+            <label>Aptitude test
+              <select id="p-test" data-key="testType">
+                <option value="none">None</option>
+                <option value="GMAT">GMAT</option>
+                <option value="GRE">GRE</option>
+                <option value="GTEBS">GTEBS</option>
+              </select>
+            </label>
+            <label class="test-score-wrap">Score
+              <input id="p-test-score" type="number" min="0" data-key="testScore" />
+            </label>
+          </div>
+        </div>
+      </details>
+      <p class="hint save-note">Saved in this browser only.</p>
+    </aside>
+
+    <!-- ================= RESULTS ================= -->
+    <section class="results" id="results" aria-labelledby="results-title">
+      <h2 id="results-title" class="sr-only">Programmes</h2>
+
+      <div class="filters">
+        <input type="search" id="f-search" placeholder="Search programmes" aria-label="Search programmes" />
+        <select id="f-field" aria-label="Field"></select>
+        <select id="f-location" aria-label="City and university"></select>
+        <button type="button" class="more-btn" id="f-more-btn" aria-expanded="false" aria-controls="f-more">More filters</button>
+      </div>
+      <div class="filters-more" id="f-more" hidden>
+        <label>Language
+          <select id="f-lang">
+            <option value="">Any</option>
+            <option value="English">English only</option>
+            <option value="German/English">German and English</option>
+            <option value="German">German</option>
+          </select>
+        </label>
+        <label>Tuition per semester
+          <select id="f-tuition">
+            <option value="">Any</option>
+            <option value="0">Free only</option>
+            <option value="1500">Up to €1,500</option>
+            <option value="5000">Up to €5,000</option>
+          </select>
+        </label>
+        <label>Type of school
+          <select id="f-inst">
+            <option value="">Any</option>
+            <option value="university">Universities</option>
+            <option value="applied">Universities of applied sciences</option>
+          </select>
+        </label>
+        <label class="toggle"><input type="checkbox" id="f-private" /> Include private schools</label>
+        <label class="toggle"><input type="checkbox" id="f-notest" /> No GMAT/GRE needed</label>
+        <label class="toggle"><input type="checkbox" id="f-nogerman" /> No German needed</label>
+        <button type="button" class="link-btn" id="f-clear">Clear filters</button>
+      </div>
+
+      <p class="unlock" id="unlock" aria-live="polite"></p>
+      <div class="list-head">
+        <div class="status-tabs" id="status-tabs" role="tablist" aria-label="Programmes by eligibility"></div>
+        <select id="f-sort" aria-label="Sort">
+          <option value="deadline">By deadline</option>
+          <option value="opens">By opening date</option>
+          <option value="tuition">By tuition</option>
+          <option value="name">By name</option>
+        </select>
+      </div>
+      <p class="tab-hint" id="tab-hint" aria-live="polite"></p>
+      <div id="list" class="list" role="tabpanel"></div>
+
+      <p class="disclaimer">
+        Information from official university pages, checked regularly. Requirements change every year, so confirm on the linked
+        official page before you apply. Grades are converted with the modified Bavarian formula; your VPD from uni-assist is the
+        binding value.
+      </p>
+    </section>
+  </main>
+
+  <!-- Programme data: one file per university. Format: data/SCHEMA.md -->
+  <script src="data/_meta.js"></script>
+  <script src="data/goethe-frankfurt.js"></script>
+  <script src="data/cologne.js"></script>
+  <script src="data/tum.js"></script>
+  <script src="data/lmu.js"></script>
+  <script src="data/fu-berlin.js"></script>
+  <script src="data/mannheim.js"></script>
+  <script src="data/rwth.js"></script>
+  <script src="data/duisburg-essen.js"></script>
+  <script src="data/hamburg.js"></script>
+  <script src="data/muenster.js"></script>
+  <script src="data/goettingen.js"></script>
+  <script src="data/passau.js"></script>
+  <script src="data/bayreuth.js"></script>
+  <script src="data/fau.js"></script>
+  <script src="data/hu-berlin.js"></script>
+  <script src="data/tu-dresden.js"></script>
+  <script src="data/bonn.js"></script>
+  <script src="data/kiel.js"></script>
+  <script src="data/leipzig.js"></script>
+  <script src="data/wuerzburg.js"></script>
+  <script src="data/bochum.js"></script>
+  <script src="data/tu-dortmund.js"></script>
+  <script src="data/paderborn.js"></script>
+  <script src="data/regensburg.js"></script>
+  <!-- Private schools (hidden unless "Include private schools" is ticked) -->
+  <script src="data/private-whu-hhl.js"></script>
+  <script src="data/private-fs-esmt.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

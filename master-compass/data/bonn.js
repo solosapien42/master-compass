@@ -1,0 +1,235 @@
+/* University of Bonn – Department of Economics (Faculty of Law and Economics, incl. BGSE) and Agricultural and Food Economics (AFECO). Checked 2026-11-18. */
+(function () {
+  const econ = "https://www.econ.uni-bonn.de/en/study-programs/study-programs/master/application-admission";
+
+  const base = {
+    university: "University of Bonn",
+    city: "Bonn",
+    state: "North Rhine-Westphalia",
+    degree: "M.Sc.",
+    ects: 120,
+    semesters: 4,
+    german: null,
+    lastChecked: "2026-11-18",
+    fees: {
+      tuitionNonEU: 0,
+      semester: "€363.07 per semester in winter 2026/27 (social contribution incl. Deutschlandticket)",
+      tuitionNote: "No tuition fees in North Rhine-Westphalia, also for non-EU students.",
+      other: "No application fee. Test fees (GRE, TOEFL, IELTS) are paid to the test provider.",
+    },
+  };
+
+  const englishC1 = {
+    cefr: "C1",
+    ielts: 7.0,
+    toefl: 95,
+    englishMedium: "yes",
+    note: "Also accepted: Cambridge C1 Advanced, or a German Abitur with at least 7 years of English. Waived for native speakers and for graduates of a bachelor taught entirely in English (the university must certify this). The page does not limit this to English-speaking countries, so an English-taught bachelor from Turkey should count.",
+  };
+
+  window.PROGRAMS = (window.PROGRAMS || []).concat([
+    {
+      ...base,
+      id: "bonn-msc-economics",
+      name: "Economics (M.Sc.)",
+      fields: ["economics", "finance", "analytics"],
+      intake: "Winter only",
+      languageKey: "English",
+      language: "English",
+      notice: {
+        type: "warning",
+        text: "Bonn says the admission requirements are still to be confirmed because of a change in university law. Re-check the official page before applying.",
+      },
+      bachelorFields: {
+        standard: ["economics", "quantitative"],
+        relatedAllowed: true,
+        note: "BSc or BA in economics (3 or 4 years), or an equivalent degree in a related field with a strong quantitative focus. Applicants without an economics degree must show a sound background in economics and quantitative methods.",
+      },
+      ectsRules: [
+        [
+          { cats: ["math", "statistics", "economics", "accounting"], min: 66, label: "Basic knowledge: maths, statistics, macro, micro, finance, research methods" },
+        ],
+      ],
+      ectsNote: "Bonn asks for 66 ECTS of basic knowledge (mathematics, statistics, macroeconomics, microeconomics, finance, academic research methods) and 24 ECTS of advanced knowledge (advanced mathematical methods, advanced micro, advanced macro, econometrics), out of 180. The tool checks only the 66 ECTS of basic knowledge. Check the 24 ECTS of advanced courses yourself.",
+      grade: {
+        min: null,
+        selection: "Committee review of complete applications. The recommendation letter from a professor is central. No waiting list.",
+        historicalNote: "No minimum grade or past cut-off is published on the official pages.",
+      },
+      test: {
+        status: "conditional",
+        accepted: ["GRE", "GMAT"],
+        note: "GRE is required if your bachelor's degree is from outside the EU, Norway, Iceland, Switzerland and Liechtenstein. Good quantitative scores help. The FAQ also accepts GMAT.",
+      },
+      english: englishC1,
+      application: {
+        route: "Apply online in the University of Bonn application portal (no uni-assist). Select winter semester (WS).",
+        vpd: false,
+        opens: "2027-01-01",
+        opensApprox: true,
+        deadline: "2027-03-31",
+        note: "Early round 1-31 January (recommendation letter due 4 February, decision mid-April). Regular round 1 February to 31 March (letter due 4 April, decision end of June). One set of deadlines for all applicants. Dates are from the current page and not yet confirmed for 2027.",
+      },
+      places: 100,
+      interview: false,
+      documents: [
+        "Bachelor certificate (or current transcript if not yet issued)",
+        "Transcript with course names and grades",
+        "CV in English or German",
+        "One confidential recommendation letter from a university professor, sent from an official university email address",
+        "English proof",
+        "Bibliography of 10-15 key books and articles from your studies",
+        "GRE score report (if required, see above)",
+        "APS certificate for degrees from China, Vietnam or India",
+        "Certified translations of documents not in German or English",
+      ],
+      sources: [
+        { label: "M.Sc. Economics: application and admission", url: econ },
+        { label: "M.Sc. Economics: programme page", url: "https://www.econ.uni-bonn.de/en/study-programs/master/master-economics" },
+        { label: "Master FAQ", url: "https://www.econ.uni-bonn.de/en/study-programs/master/faq" },
+        { label: "University of Bonn: costs", url: "https://www.uni-bonn.de/de/studium/bewerbung-zulassung-und-einschreibung/kosten" },
+      ],
+      caveats: [
+        "No minimum grade is published on the official pages. A third-party summary mentions a German 2.3, but we could not confirm this. Ask the department.",
+        "The application page says GRE is required for degrees from outside the EU and nearby countries. The FAQ says outside Europe. Turkey is not in the EU, so plan for the GRE (or GMAT, per the FAQ) and confirm with the department.",
+        "Partial-degree rule: you may apply with a current transcript. The bachelor thesis must be submitted by 30 September and the certificate shown by December. No minimum ECTS share is stated.",
+        "The 2027 dates are not published yet. The January and February-March windows are from the current page. The page gives no separate non-EU deadline.",
+        "Number of places (about 100 of more than 1,300 applications) is from the application page and may change.",
+        "The semester fee is the winter 2026/27 amount. The winter 2027/28 amount may differ.",
+      ],
+    },
+    {
+      ...base,
+      id: "bonn-bgse-msc-economics-research",
+      name: "Economics, Research Track (BGSE Research Master + PhD)",
+      fields: ["economics"],
+      intake: "Winter only",
+      languageKey: "English",
+      language: "English",
+      notice: {
+        type: "info",
+        text: "This is the first two years of the five-year BGSE MSc/PhD programme. It is very competitive. Applicants are mainly top 10% students aiming at a PhD.",
+      },
+      bachelorFields: {
+        standard: ["economics", "quantitative"],
+        relatedAllowed: true,
+        note: "Bachelor's or master's degree in economics or a related field such as mathematics, statistics, business administration or accounting and finance. No fixed degree class or ECTS split is published.",
+      },
+      ectsRules: [],
+      ectsNote: "No fixed subject ECTS minimums are published. A strong maths and economics background is expected.",
+      grade: {
+        min: null,
+        selection: "Committee review of the full file (GRE, recommendation letters, statement of purpose, transcripts). Top 10% students are encouraged to apply.",
+        historicalNote: "Average GRE quantitative score of successful applicants: about 165.",
+      },
+      test: {
+        status: "required",
+        accepted: ["GRE"],
+        note: "GRE General Test required for all applicants. Minimum 160 in the quantitative section, otherwise you are not eligible. Send scores to ETS, BGSE institution code 1359.",
+      },
+      english: {
+        cefr: "C1",
+        ielts: 7.0,
+        toefl: 100,
+        englishMedium: "yes",
+        note: "IELTS Academic 7.0 overall with at least 6.5 in reading, listening and speaking and 7.0 in writing. TOEFL iBT 100 (at least 23 per section) for tests before 21 January 2026. For later tests, the new scale needs 5.0 overall and at least 4.5 in speaking and writing. Cambridge C1 Advanced also accepted. Not needed for native speakers or if your previous degree was taught entirely in English (upload proof such as the programme web page). The page does not limit this to English-speaking countries.",
+      },
+      application: {
+        route: "Apply online in the University of Bonn / BGSE application portal (no uni-assist). Recommendation letters are uploaded by referees.",
+        vpd: false,
+        opens: "2026-11-15",
+        opensApprox: true,
+        deadline: "2027-01-15",
+        note: "One online round per year, normally mid-November to 15 January. A complete file is needed by the deadline, including recommendation letters. The 2027 dates are the usual pattern and not yet confirmed on the page.",
+      },
+      interview: false,
+      documents: [
+        "Statement of academic purpose",
+        "CV",
+        "At least two recommendation letters (at least one from a professor who taught you), uploaded by the referees",
+        "GRE General Test score report",
+        "English proof (unless exempt)",
+        "Academic transcripts and degree documents (certified translations if not in English or German)",
+        "APS certificate, if applicable",
+      ],
+      sources: [
+        { label: "BGSE: apply now", url: "https://www.econ.uni-bonn.de/bgse/en/apply-now" },
+        { label: "BGSE homepage", url: "https://www.econ.uni-bonn.de/bgse" },
+        { label: "University of Bonn: costs", url: "https://www.uni-bonn.de/de/studium/bewerbung-zulassung-und-einschreibung/kosten" },
+      ],
+      caveats: [
+        "The 2027 opening date and the 15 January 2027 deadline are the usual pattern. The page says only that the round is expected to open in mid-November. Confirm on the BGSE site.",
+        "Number of places is not published. Selected applicants may get a short (about 15 minutes) online interview if reviewers need clarification.",
+        "Applicants who have not finished their degree may apply if they will finish before the programme starts. No minimum ECTS share is stated.",
+        "No minimum grade is published. The semester fee is the winter 2026/27 amount.",
+      ],
+    },
+    {
+      ...base,
+      id: "bonn-msc-afeco",
+      name: "Agricultural and Food Economics (AFECO)",
+      fields: ["economics", "management", "sustainability"],
+      intake: "Winter & summer",
+      languageKey: "English",
+      language: "English",
+      notice: {
+        type: "info",
+        text: "This programme belongs to the Faculty of Agricultural, Nutritional and Engineering Sciences, not the economics department. Majors include Agribusiness and Resource and Environmental Economics.",
+      },
+      bachelorFields: {
+        standard: ["economics", "business"],
+        relatedAllowed: true,
+        note: "B.Sc. in agribusiness management, agricultural economics, food and household economics, economics, business management or a similar field. All requirements below must be met.",
+      },
+      ectsRules: [
+        [
+          { cats: ["business", "economics"], min: 42, label: "Economics or business management (the economics-focused bachelor thesis may count)" },
+          { cats: ["statistics"], min: 5, label: "Statistics" },
+        ],
+      ],
+      ectsNote: "At least 42 ECTS in economics or business management, including at least 5 ECTS in microeconomics and at least 5 ECTS in statistics. The microeconomics part cannot be entered in the tool. Check it yourself.",
+      grade: {
+        min: 2.5,
+        selection: "Local admission restriction (NC) with special selection. The examination board decides.",
+        historicalNote: "No past cut-off is published.",
+      },
+      test: { status: "none", accepted: [], note: "No GMAT or GRE required." },
+      english: {
+        cefr: "B2",
+        ielts: 6.5,
+        toefl: 90,
+        englishMedium: "conditional",
+        note: "TOEFL iBT 90 (paper tests not accepted), IELTS Academic 6.5, Cambridge B2, or a German Abitur with English as first foreign language for at least 8 years (min. 6 points). Tests no older than 2 years. The page does not list an exemption for English-taught bachelors, so ask the programme office whether a Turkish English-taught bachelor counts.",
+      },
+      application: {
+        route: "Apply online at application.uni-bonn.de (no uni-assist). Certified copies only.",
+        vpd: false,
+        opens: "2026-12-01",
+        deadline: "2027-07-15",
+        note: "Winter window 1 December to 15 July. Early evaluation on 15 February, recommended for applicants who need an entry visa. Later applications are evaluated after 15 July. No separate non-EU deadline is given. Final-year students may apply before graduating (tentative admission on transcript and expected graduation date).",
+      },
+      interview: false,
+      documents: [
+        "Online application",
+        "B.Sc. certificate showing grade 2.5 or better (or equivalent)",
+        "Transcript with ECTS, or diploma supplement (current transcript if not yet graduated)",
+        "University entrance qualification (translation if needed)",
+        "English CV with photo",
+        "English proof",
+        "Optional: bachelor thesis summary (max. 2 pages), recommendation letter, motivation letter",
+      ],
+      sources: [
+        { label: "AFECO: application and admission", url: "https://www.ilr1.uni-bonn.de/afeco/en/application" },
+        { label: "University of Bonn: AFECO degree page", url: "https://www.uni-bonn.de/en/studying/degree-programs/degree-programs-a-z/agricultural-and-food-economics-msc" },
+        { label: "AFECO study programme", url: "https://www.aei.uni-bonn.de/en/studies/study-programs/msc-agricultural-and-food-economics-afeco" },
+        { label: "University of Bonn: costs", url: "https://www.uni-bonn.de/de/studium/bewerbung-zulassung-und-einschreibung/kosten" },
+      ],
+      caveats: [
+        "The university degree page says applicants from outside Germany or the EU must pass an aptitude test for university studies. The AFECO application page does not mention one. Ask afeco@ilr.uni-bonn.de whether this applies to Turkish applicants.",
+        "The university page lists B2/C1 English, the AFECO page lists TOEFL 90 / IELTS 6.5. We used the AFECO page.",
+        "Number of places is not published. Non-EU quota or deadline is not stated for AFECO (other programmes of the faculty have an April window for non-EU applicants).",
+        "The semester fee is the winter 2026/27 amount.",
+      ],
+    },
+  ]);
+})();

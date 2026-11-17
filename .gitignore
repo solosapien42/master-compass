@@ -1,0 +1,15 @@
+# --- Personal files: never upload ---
+# Transcripts and other documents (may contain ID numbers and grades)
+*.pdf
+transkript-analizi.md
+
+# --- Generated / local only ---
+# Build output for the claude.ai artifact (rebuilt by build-artifact.ps1)
+master-compass/artifact.html
+# Local Claude Code settings
+.claude/
+
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store
