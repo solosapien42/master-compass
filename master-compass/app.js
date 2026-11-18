@@ -148,7 +148,9 @@
     if (state.profile.citizenship === "eu") return 0;
     return f.tuitionNonEU || 0;
   }
-  const fmtEuro = (n) => "€" + n.toLocaleString("en-US");
+  const fmtEuro = (n) => "€" + Math.round(n).toLocaleString("en-US");
+  /** Escaped text that ends with exactly one full stop (data strings may or may not have one). */
+  const sentence = (s) => { const t = esc(String(s).trim()); return /[.!?]\)?$/.test(t) ? t : t + "."; };
 
   /** Evaluate one ECTS/grade condition against the profile. */
   function evalCond(c) {
@@ -261,7 +263,7 @@
     } else if (prof.englishType === "medium") {
       if (en.englishMedium === "yes") add("ok", "English", "An English-taught bachelor is accepted as proof. You need an official confirmation from your university.");
       else if (en.englishMedium === "conditional") add("warn", "English", "An English-taught bachelor counts only under conditions.", en.note);
-      else add("warn", "English", `Here an English-taught bachelor only counts if it is from a native English-speaking country. You need ${enReq}.`);
+      else add("warn", "English", `An English-taught bachelor is not accepted as proof here. You need ${enReq}.`, en.note);
     } else add("warn", "English", `Proof needed: ${enReq}.`);
 
     // 6. German
@@ -322,7 +324,7 @@
   // ---------- rendering ----------
   function renderMeta() {
     const unis = new Set(PROGRAMS.map((p) => p.university)).size;
-    $("#meta").textContent = `${PROGRAMS.length} programmes at ${unis} universities · ${META.cycle || ""} · updated ${fmtDate(META.lastUpdated || "2026-01-01")}`;
+    $("#meta").textContent = `${PROGRAMS.length} programmes at ${unis} schools · ${META.cycle || ""} · updated ${fmtDate(META.lastUpdated || "2026-01-01")}`;
   }
 
   function renderGradeOut() {
@@ -389,6 +391,9 @@
         return true;
       })
       .sort((a, b) => {
+        // Closed windows go last whatever the sort order: they can't be acted on in this cycle.
+        const closed = (x) => (daysUntil(x.p.application.deadline) < 0 ? 1 : 0);
+        if (closed(a) !== closed(b)) return closed(a) - closed(b);
         if (f.sort === "deadline") return a.p.application.deadline.localeCompare(b.p.application.deadline);
         if (f.sort === "name") return a.p.name.localeCompare(b.p.name);
         if (f.sort === "opens") return (a.p.application.opens || a.p.application.deadline).localeCompare(b.p.application.opens || b.p.application.deadline);
@@ -511,13 +516,15 @@
     <div class="more-grid">
       <div>
         <h4>How to apply</h4>
-        <p>${esc(a.route)}.</p>
-        ${a.note ? `<p>${esc(a.note)}</p>` : ""}
+        <p>${sentence(a.route)}</p>
+        ${a.note ? `<p>${sentence(a.note)}</p>` : ""}
         <p><strong>Window:</strong> ${a.opens ? `${a.opensApprox ? "approx. " : ""}${fmtDate(a.opens)} – ` : ""}${fmtDate(a.deadline)}</p>
         <h4 style="margin-top:14px">Fees</h4>
-        <p>Tuition (non-EU): ${p.fees.tuitionNonEU ? fmtEuro(p.fees.tuitionNonEU) + " per semester" : "none"}. ${esc(p.fees.semester)}.</p>
-        ${p.fees.tuitionNote ? `<p>${esc(p.fees.tuitionNote)}</p>` : ""}
-        ${p.fees.other ? `<p>${esc(p.fees.other)}.</p>` : ""}
+        <p>${p.fees.tuitionAll
+          ? `Tuition (everyone): ${fmtEuro(p.fees.tuitionAll)} per semester.`
+          : `Tuition (non-EU): ${p.fees.tuitionNonEU ? fmtEuro(p.fees.tuitionNonEU) + " per semester" : "none"}.`} ${sentence(p.fees.semester)}</p>
+        ${p.fees.tuitionNote ? `<p>${sentence(p.fees.tuitionNote)}</p>` : ""}
+        ${p.fees.other ? `<p>${sentence(p.fees.other)}</p>` : ""}
       </div>
       <div>
         <h4>Documents</h4>
