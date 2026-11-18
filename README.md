@@ -4,7 +4,7 @@ A free website that checks which **business and economics master's programmes in
 Students enter their profile once (bachelor field, grade, ECTS per subject, languages, tests) and see, for every
 programme, what they already meet and what is still missing.
 
-- 164 programmes at 28 schools (public universities + optional private schools), winter semester 2027/28
+- 179 programmes at 32 schools (public universities, universities of applied sciences, optional private schools), winter semester 2027/28
 - Grade conversion with the modified Bavarian formula, or the grade from a uni-assist VPD
 - Subject-ECTS rules, minimum grades, English/German requirements, GMAT/GRE, application windows, tuition
 - Filters by field, city/university, language, tuition; a personal shortlist

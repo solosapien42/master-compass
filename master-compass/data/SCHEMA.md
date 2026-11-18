@@ -22,7 +22,7 @@ Use straight quotes in JS strings and escape apostrophes properly.
 
 | Key | Type | Meaning |
 |---|---|---|
-| `id` | string | Unique, kebab-case, prefixed with the uni code (`gu-`, `uzk-`, `tum-`, `lmu-`, `fu-`, `uma-`, `rwth-`, `ude-`) |
+| `id` | string | Unique, kebab-case, prefixed with the uni code (`gu-`, `uzk-`, `tum-`, `lmu-`, `fu-`, `uma-`, `rwth-`, `ude-`, `hsrw-`, `htw-`, `hwr-`, `esb-` …) |
 | `university` | string | e.g. "University of Cologne" |
 | `institutionType` | `"university"` \| `"applied"` | Optional, default `"university"`. `"applied"` = university of applied sciences (Hochschule / FH / TH) |
 | `private` | bool | Optional, default `false`. `true` for state-recognised private schools (WHU, Frankfurt School, HHL, ESMT …). Hidden in the UI unless the user includes private schools |
