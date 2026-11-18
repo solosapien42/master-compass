@@ -277,6 +277,7 @@
         opens: "2027-06-01",
         opensApprox: true,
         deadline: "2027-07-15",
+        eu: { deadline: "2027-09-30" },
         note: "Non-EU deadline for winter: 15 July (EU citizens: 30 September; higher semester: 15 October). The opening date is assumed from the RUB master's pattern (early June). A mandatory advising meeting takes place after admission.",
       },
       documents: [

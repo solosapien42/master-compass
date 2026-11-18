@@ -148,6 +148,14 @@
     if (state.profile.citizenship === "eu") return 0;
     return f.tuitionNonEU || 0;
   }
+  /**
+   * The application window that applies to this applicant. `application` holds the non-EU dates;
+   * an optional `application.eu` overrides them for EU/EEA citizens (opens: null = no opening date known).
+   */
+  function appFor(p) {
+    const a = p.application;
+    return state.profile.citizenship === "eu" && a.eu ? { ...a, ...a.eu, isEu: true } : a;
+  }
   const fmtEuro = (n) => "€" + Math.round(n).toLocaleString("en-US");
   /** Escaped text that ends with exactly one full stop (data strings may or may not have one). */
   const sentence = (s) => { const t = esc(String(s).trim()); return /[.!?]\)?$/.test(t) ? t : t + "."; };
@@ -293,7 +301,7 @@
     if (fee > 0) add("info", "Tuition", `${fmtEuro(fee)} per semester${p.fees.tuitionAll ? "" : " for non-EU students"} (about ${fmtEuro(fee * (p.semesters || 4))} in total).`, p.fees.tuitionNote);
 
     // 9. Deadline
-    const a = p.application;
+    const a = appFor(p);
     const left = daysUntil(a.deadline);
     if (left < 0) add("fail", "Deadline", `The deadline (${fmtDate(a.deadline)}) has passed for this cycle.`);
     if (a.vpd) {
@@ -392,13 +400,14 @@
       })
       .sort((a, b) => {
         // Closed windows go last whatever the sort order: they can't be acted on in this cycle.
-        const closed = (x) => (daysUntil(x.p.application.deadline) < 0 ? 1 : 0);
-        if (closed(a) !== closed(b)) return closed(a) - closed(b);
-        if (f.sort === "deadline") return a.p.application.deadline.localeCompare(b.p.application.deadline);
+        const A = appFor(a.p), B = appFor(b.p);
+        const closed = (x) => (daysUntil(x.deadline) < 0 ? 1 : 0);
+        if (closed(A) !== closed(B)) return closed(A) - closed(B);
+        if (f.sort === "deadline") return A.deadline.localeCompare(B.deadline);
         if (f.sort === "name") return a.p.name.localeCompare(b.p.name);
-        if (f.sort === "opens") return (a.p.application.opens || a.p.application.deadline).localeCompare(b.p.application.opens || b.p.application.deadline);
+        if (f.sort === "opens") return (A.opens || A.deadline).localeCompare(B.opens || B.deadline);
         if (f.sort === "tuition") return tuitionFor(a.p) - tuitionFor(b.p) || STATUS[a.ev.status].rank - STATUS[b.ev.status].rank;
-        return STATUS[a.ev.status].rank - STATUS[b.ev.status].rank || a.p.application.deadline.localeCompare(b.p.application.deadline);
+        return STATUS[a.ev.status].rank - STATUS[b.ev.status].rank || A.deadline.localeCompare(B.deadline);
       });
   }
 
@@ -438,7 +447,7 @@
     // The shortlist ignores filters: it always shows every saved programme.
     const savedIds = new Set(state.saved);
     const saved = PROGRAMS.filter((p) => savedIds.has(p.id)).map((p) => ({ p, ev: evaluate(p) }))
-      .sort((a, b) => a.p.application.deadline.localeCompare(b.p.application.deadline));
+      .sort((a, b) => appFor(a.p).deadline.localeCompare(appFor(b.p).deadline));
     counts.saved = saved.length;
 
     const chosen = state.filters.status;
@@ -462,7 +471,12 @@
 
   function card(p, ev, showStatus) {
     const isSaved = state.saved.includes(p.id);
-    const a = p.application;
+    const a = appFor(p);
+    // Window text for the details view: "approx. 1 May 2027 – 15 Jul 2027".
+    const winText = (w) => `${w.opens ? `${w.opensApprox ? "approx. " : ""}${fmtDate(w.opens)} – ` : "until "}${fmtDate(w.deadline)}`;
+    const otherWin = p.application.eu
+      ? (a.isEu ? `Non-EU applicants: ${winText(p.application)}.` : `EU/EEA citizens: ${winText({ ...p.application, ...p.application.eu })}.`)
+      : "";
     const left = daysUntil(a.deadline);
     // Application window: "1 Apr – 15 May 2027" plus where we are in it today.
     const toOpen = a.opens ? daysUntil(a.opens) : null;
@@ -495,7 +509,7 @@
     </div>
     <div class="deadline${soon ? " soon" : ""}">
       <button type="button" class="save-btn" data-id="${esc(p.id)}" aria-pressed="${isSaved}" aria-label="${isSaved ? "Remove from" : "Add to"} shortlist: ${esc(p.name)}">${isSaved ? "★ Saved" : "☆ Save"}</button>
-      <span>${a.opens ? "Application" : "Deadline"}</span>
+      <span>${a.opens ? "Application" : "Deadline"}${a.isEu ? " · EU/EEA" : ""}</span>
       <strong>${a.opens ? `${esc(opensTxt)} – ` : ""}${fmtDate(a.deadline)}</strong>
       <small>${esc(winStatus)}</small>
     </div>
@@ -518,7 +532,8 @@
         <h4>How to apply</h4>
         <p>${sentence(a.route)}</p>
         ${a.note ? `<p>${sentence(a.note)}</p>` : ""}
-        <p><strong>Window:</strong> ${a.opens ? `${a.opensApprox ? "approx. " : ""}${fmtDate(a.opens)} – ` : ""}${fmtDate(a.deadline)}</p>
+        <p><strong>Your window${a.isEu ? " (EU/EEA citizens)" : p.application.eu ? " (non-EU)" : ""}:</strong> ${winText(a)}</p>
+        ${otherWin ? `<p class="muted">${esc(otherWin)}</p>` : ""}
         <h4 style="margin-top:14px">Fees</h4>
         <p>${p.fees.tuitionAll
           ? `Tuition (everyone): ${fmtEuro(p.fees.tuitionAll)} per semester.`

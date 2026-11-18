@@ -198,6 +198,7 @@
         vpd: false,
         opens: "2027-05-01",
         deadline: "2027-06-15",
+        eu: { deadline: "2027-07-15" },
         note: "Non-EU window 1 May to 15 June (faculty page and central page agree). The 15 July date on the programme overview applies to German/EU applicants only.",
       },
       documents: [
@@ -418,6 +419,7 @@
         vpd: false,
         opens: "2027-05-01",
         deadline: "2027-06-15",
+        eu: { deadline: "2027-07-15" },
         note: "Non-EU window 1 May to 15 June (faculty page and central page agree). The 15 July date on the programme overview is for German/EU applicants.",
       },
       documents: [

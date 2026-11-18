@@ -320,6 +320,7 @@
         vpd: false,
         opens: "2026-10-01",
         deadline: "2026-11-15",
+        eu: { opens: "2027-04-01", deadline: "2027-05-15" },
         note: "Non-EU/EEA citizens with a non-EU/EEA bachelor (and EPOS scholarship applicants) apply 1 October to 15 November of the previous year (23:59 CET). That window is closed for winter 2027/28. EU/EEA citizens or holders of an EU/EEA bachelor apply 1 April to 15 May 2027. Decisions for non-EU applicants come by end of February (EPOS: mid-March). Applicants from China, India, Mongolia and Vietnam need APS certification (India: also the dMAT test from 2026).",
       },
       interview: true,

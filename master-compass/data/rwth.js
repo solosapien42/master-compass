@@ -32,6 +32,8 @@
       vpd: false,
       opens: "2026-12-01",
       deadline: "2027-03-01",
+      // EU applicants (and German-degree holders) of open-admission programmes: until 15 July. Opening date not stated.
+      eu: { opens: null, deadline: "2027-07-15" },
       note: "Open-admission programmes: non-EU applicants apply 1 Dec – 1 Mar for winter (1 Jun – 1 Sep for summer). EU applicants and holders of a German degree have until 15 July. Deadlines are final and there is no extension for missing documents. You may apply before graduating; grades are needed for all semesters except the last two.",
     },
     interview: false,
@@ -185,6 +187,7 @@
       },
       application: {
         ...base.application,
+        eu: undefined, // restricted admission: one window for everyone
         opens: "2027-05-01",
         deadline: "2027-07-15",
         note: "Restricted-admission programmes use the same window for all applicants, including non-EU: 1 May – 15 July for winter. Extra supporting documents are accepted until 1 August. Plan the GTEBS early: online dates in 2027 include January to early June.",

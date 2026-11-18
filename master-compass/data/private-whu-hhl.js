@@ -47,6 +47,7 @@
     vpd: false,
     opens: "2026-09-15",
     deadline: "2027-04-30",
+    eu: { deadline: "2027-05-31" },
     note: "Rounds for the 2027 intake: early bird 30 Nov 2026 and 31 Jan 2027; scholarship deadline 31 Mar 2027; 30 Apr 2027 for applicants who need a student visa (this date is used above); 31 May 2027 final deadline for EU/EEA citizens and applicants who do not need a visa. Processing: online review up to 7 business days, video interview, live interview, then study contract (14 days to sign).",
   };
 
@@ -123,6 +124,7 @@
     vpd: false,
     opens: "2026-09-15",
     deadline: "2027-05-31",
+    eu: { deadline: "2027-06-30" },
     note: "Rounds for the September 2027 intake: Early Bird 1 on 30 Nov 2026, Early Bird 2 on 31 Jan 2027, Early Bird 3 on 31 Mar 2027 (discounts need the interview passed and tests in by the later dates listed on the site), final round for non-EU applicants on 31 May 2027 (used above), final round for EU applicants and others without a visa need on 30 Jun 2027. Non-EU applicants who need a visa should apply as early as possible. Interview dates run from Oct 2026 to Jul 2027; decision 7 to 10 days after the interview.",
   };
 
