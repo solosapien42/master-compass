@@ -18,7 +18,7 @@
   const sharedCaveats = [
     "The semester contribution page lists components that add up to €439.88, but the stated total is €484.18. A DAAD listing says about €460. Check the amount in your admission letter.",
     "The faculty pages show the same application periods every year and do not print dates for 2027. We assume the 2026 pattern. Re-check from March 2027.",
-    "The admission regulations (PDF) could not be read in full. Grade minimums, scoring and places come from the programme pages only. Where a page is silent, we show null.",
+    "The admission regulations (PDF) could not be read in full. Grade minimums, scoring and places come from the programme pages only. Where a page is silent, we show no minimum.",
   ];
 
   const base = {

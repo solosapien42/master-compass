@@ -107,7 +107,19 @@
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
-  function ectsOf(cat) { return num(state.profile["ects." + cat]) || 0; }
+  const days = (n) => `${n} day${n === 1 ? "" : "s"}`;
+  /** Lower-case, accents removed (ö → o), so "Gottingen" finds "Göttingen". */
+  const fold = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  // German spellings people type for the English city names used in the data.
+  const CITY_ALIASES = { Munich: "München Muenchen", Cologne: "Köln Koeln", Nuremberg: "Nürnberg Nuernberg", Frankfurt: "Frankfurt am Main" };
+  /** Search text for a programme: names, city (with aliases), fields, and ä/ö/ü also as ae/oe/ue. */
+  function haystack(p) {
+    const raw = [p.name, p.university, p.city, CITY_ALIASES[p.city] || "", p.fields.map((x) => FIELD_LABELS[x]).join(" ")].join(" ");
+    return fold(raw) + " " + fold(raw.replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss"));
+  }
+
+  // Negative credits make no sense: treat them as 0.
+  function ectsOf(cat) { return Math.max(0, num(state.profile["ects." + cat]) || 0); }
   function hasAnyEcts() { return Object.keys(CAT_LABELS).some((c) => ectsOf(c) > 0); }
 
   /** German grade via the modified Bavarian formula. Returns null if not computable. */
@@ -122,7 +134,7 @@
     if (g < 0 || g > (p.gradeScale === "tr4" ? 4 : 100)) return null;
     const max = p.gradeScale === "tr4" ? 4 : 100;
     const min = num(p.gradeMin);
-    if (min === null || min >= max) return null;
+    if (min === null || min < 0 || min >= max) return null;
     const de = 1 + (3 * (max - g)) / (max - min);
     return Math.max(1, de);
   }
@@ -135,7 +147,9 @@
     if (g === null) return "Enter your GPA to see your German grade.";
     if (p.gradeScale === "de") return "Enter a German grade between 1.0 and 5.0.";
     if (g < 0 || g > max) return `Enter a GPA between 0 and ${max}.`;
-    return "Enter the minimum grade needed to graduate.";
+    const min = num(p.gradeMin);
+    if (min === null) return "Enter the minimum grade needed to graduate.";
+    return `The minimum grade to graduate must be between 0 and ${max}, and below your scale's best grade.`;
   }
 
   // uni-assist style: cut off after the first decimal
@@ -181,7 +195,8 @@
     const prof = state.profile;
     const checks = [];
     // detail = short text shown on the card; more = extra context shown only in the details view.
-    const add = (s, label, detail, more) => checks.push({ s, label, detail, more });
+    // full = replaces detail in the details view when the card shows a shortened version.
+    const add = (s, label, detail, more, full) => checks.push({ s, label, detail, more, full });
 
     // 1. Bachelor field
     const bf = p.bachelorFields;
@@ -203,16 +218,18 @@
       else {
         // On the card, list only the conditions that are not met.
         const missing = shown.filter((c) => !c.ok).map(condText).join(" · ");
-        add("fail", "Subject ECTS", missing + (results.length > 1 ? " (closest of " + results.length + " options)" : ""), [detail, p.ectsNote].filter(Boolean).join(" "));
+        const closest = results.length > 1 ? " (closest of " + results.length + " options)" : "";
+        add("fail", "Subject ECTS", missing + closest, p.ectsNote, detail + closest);
       }
     }
 
     // 3. Bachelor progress (partial degree)
     if (prof.finished !== "yes") {
-      const total = num(prof.totalEcts), done = num(prof.completedEcts);
+      const total = num(prof.totalEcts) > 0 ? num(prof.totalEcts) : null, done = num(prof.completedEcts);
       const rule = p.partialMinEcts ? `${p.partialMinEcts} ECTS` : `${p.partialMinPct}% of your credits`;
       const need = p.partialMinEcts || (total ? Math.ceil((total * p.partialMinPct) / 100) : null);
-      if (!rule || (!p.partialMinEcts && !p.partialMinPct)) add("info", "Credits completed", "Check the official page for rules on applying before graduation.");
+      if (!p.partialMinEcts && !p.partialMinPct) add("info", "Credits completed", "Check the official page for rules on applying before graduation.");
+      else if (done !== null && (done < 0 || (total && done > total))) add("pending", "Credits completed", "Your completed ECTS don't fit your total. Check both numbers.");
       else if (!need || done === null) add("pending", "Credits completed", `You can apply before graduating with at least ${rule}. Enter your completed ECTS.`);
       else if (done >= need) add("ok", "Credits completed", `${done}/${total || "?"} ECTS done. ${need} are required when you apply.`);
       else add("warn", "Credits completed", `${done}/${total || "?"} ECTS done. You need ${need} (${rule}) by the time you apply.`);
@@ -264,8 +281,8 @@
     } else if (prof.englishType === "ielts" || prof.englishType === "toefl") {
       const min = prof.englishType === "ielts" ? en.ielts : en.toefl;
       const name = prof.englishType === "ielts" ? "IELTS" : "TOEFL";
-      if (min == null) add("info", "English", `The programme page doesn't state a minimum ${name} score. ${en.note || ""}`);
-      else if (score === null) add("pending", "English", `Enter your ${name} score. Required: ${enReq}.`);
+      if (score === null) add("pending", "English", `Enter your ${name} score. Required: ${enReq}.`);
+      else if (min == null) add("info", "English", `${name} ${score}. The programme page doesn't state a minimum ${name} score. ${en.note || ""}`);
       else if (score >= min) add("ok", "English", `${name} ${score} meets the requirement (min. ${min}).`);
       else add("warn", "English", `${name} ${score} is below the minimum of ${min}. A retake is needed.`);
     } else if (prof.englishType === "medium") {
@@ -286,7 +303,8 @@
     const hasTest = prof.testType !== "none";
     const accepted = t.accepted.some((a) => a.startsWith(prof.testType));
     if (t.status === "required") {
-      if (hasTest && accepted) add("ok", "GMAT / GRE", `Required, and you have ${prof.testType}. ${t.note}`);
+      // We only know which test the user took, not section scores, so a pass can't be confirmed.
+      if (hasTest && accepted) add("info", "GMAT / GRE", `Required. ${prof.testType} is accepted; compare your scores with the minimums.`, t.note);
       else add("warn", "GMAT / GRE", `Required: ${t.accepted.join(", ")}.`, t.note);
     } else if (t.status === "optional") {
       if (hasTest && accepted) add("ok", "GMAT / GRE", `Optional. Your ${prof.testType} will count. ${t.note}`);
@@ -331,8 +349,10 @@
 
   // ---------- rendering ----------
   function renderMeta() {
-    const unis = new Set(PROGRAMS.map((p) => p.university)).size;
-    $("#meta").textContent = `${PROGRAMS.length} programmes at ${unis} schools · ${META.cycle || ""} · updated ${fmtDate(META.lastUpdated || "2026-01-01")}`;
+    const pub = PROGRAMS.filter((p) => !p.private), priv = PROGRAMS.filter((p) => p.private);
+    const schools = (list) => new Set(list.map((p) => p.university)).size;
+    const privTxt = priv.length ? ` (+${priv.length} at ${schools(priv)} private schools)` : "";
+    $("#meta").textContent = `${pub.length} programmes at ${schools(pub)} public schools${privTxt} · ${META.cycle || ""} · updated ${fmtDate(META.lastUpdated || "2026-01-01")}`;
   }
 
   function renderGradeOut() {
@@ -342,7 +362,7 @@
       el.classList.add("show");
       el.innerHTML = de === null
         ? "Enter the grade from your VPD (between 1.0 and 4.0)."
-        : `Using your uni-assist grade <strong>${de.toFixed(1)}</strong> <span class="muted">(1.0 is best)</span>`;
+        : `Using your uni-assist grade <strong>${truncGrade(de).toFixed(1)}</strong> <span class="muted">(1.0 is best)</span>`;
       return;
     }
     if (de === null) {
@@ -351,15 +371,34 @@
       el.textContent = g !== null ? gradeMissingMsg() : "";
       return;
     }
-    if (state.profile.gradeScale === "de") { el.classList.add("show"); el.innerHTML = `German grade <strong>${truncGrade(de).toFixed(1)}</strong>`; return; }
+    if (state.profile.gradeScale === "de") {
+      el.classList.add("show");
+      el.innerHTML = de > 4 ? "This grade is below the German passing grade (4.0)." : `German grade <strong>${truncGrade(de).toFixed(1)}</strong>`;
+      return;
+    }
     el.classList.add("show");
     el.innerHTML = de > 4
       ? "This grade is below the minimum passing grade."
       : `German grade ≈ <strong>${truncGrade(de).toFixed(1)}</strong><br/><span class="muted">Calculated ${de.toFixed(2)}; universities cut it after the first decimal. 1.0 is best.</span>`;
   }
 
+  /** Message if the entered English score is outside the test's range, else "". */
+  function englishScoreError() {
+    const p = state.profile;
+    const range = { ielts: [0, 9], toefl: [0, 120], toeflBand: [1, 6] }[p.englishType];
+    const s = num(p.englishScore);
+    return range && s !== null && (s < range[0] || s > range[1]) ? `Scores on this test go from ${range[0]} to ${range[1]}.` : "";
+  }
+
   function syncFormVisibility() {
     const p = state.profile;
+    // Inline input problems, shown right under the field instead of only on the cards.
+    $("#english-err").textContent = englishScoreError();
+    const tot = num(p.totalEcts), done = num(p.completedEcts);
+    $("#credits-err").textContent =
+      tot !== null && tot <= 0 ? "Total ECTS must be more than 0." :
+      done !== null && done < 0 ? "Completed ECTS can't be negative." :
+      tot && done !== null && done > tot ? `Completed ECTS can't be more than your total (${tot}).` : "";
     const vpd = p.gradeSource === "vpd";
     $(".vpd-wrap").hidden = !vpd;
     $(".calc-wrap").hidden = vpd;
@@ -368,25 +407,30 @@
     const acc = ectsOf("accounting"), bus = ectsOf("business");
     const total = num(p.totalEcts) || 0;
     const warns = [];
+    if (Object.keys(CAT_LABELS).some((c) => (num(p["ects." + c]) || 0) < 0)) warns.push("negative numbers count as 0");
     if (acc > bus) warns.push(`accounting/finance/tax (${acc}) can't be more than business (${bus})`);
     if (total && sum > total) warns.push(`more than your total bachelor ECTS (${total})`);
-    $("#ects-total").innerHTML = sum
+    $("#ects-total").innerHTML = sum || warns.length
       ? `Subject credits entered: <strong>${sum}</strong> ECTS${warns.length ? ` <span class="warn-text">· ${esc(warns.join("; "))}</span>` : ""}`
       : "";
     $(".completed-wrap").style.display = p.finished === "yes" ? "none" : "";
     const showEn = p.englishType === "ielts" || p.englishType === "toefl" || p.englishType === "toeflBand";
     $(".english-score-wrap").style.visibility = showEn ? "visible" : "hidden";
     $(".test-score-wrap").style.visibility = p.testType !== "none" ? "visible" : "hidden";
+    $("#grade-min-hint").textContent = p.gradeScale === "100"
+      ? "From your Diploma Supplement (4.2). Usually 50 or 60 on the 100-point scale."
+      : "From your Diploma Supplement (4.2). Usually 2.00 on the 4.00 scale.";
     const gradeInput = $('[data-key="grade"]');
     gradeInput.placeholder = p.gradeScale === "tr4" ? "e.g. 3.20" : p.gradeScale === "100" ? "e.g. 78" : "e.g. 2.3";
   }
 
   function filtered() {
     const f = state.filters;
-    const q = f.search.trim().toLowerCase();
+    // Every word must match somewhere (order and punctuation don't matter).
+    const words = fold(f.search).split(/[\s,.;/()-]+/).filter(Boolean);
     return PROGRAMS.map((p) => ({ p, ev: evaluate(p) }))
       .filter(({ p, ev }) => {
-        if (q && !(p.name + " " + p.university + " " + p.city + " " + p.fields.map((x) => FIELD_LABELS[x]).join(" ")).toLowerCase().includes(q)) return false;
+        if (words.length) { const h = haystack(p); if (!words.every((w) => h.includes(w))) return false; }
         if (f.city && p.city !== f.city) return false;
         if (f.uni && p.university !== f.uni) return false;
         if (f.lang && p.languageKey !== f.lang) return false;
@@ -394,7 +438,8 @@
         if (f.notest && (p.test.status === "required" || p.test.status === "conditional" || p.grade.testNeeded)) return false;
         if (f.nogerman && p.german) return false;
         if (f.tuition !== "" && tuitionFor(p) > Number(f.tuition)) return false;
-        if (p.private && !f.private) return false;
+        // Picking a private school by name in the location filter includes it even if the box is unticked.
+        if (p.private && !f.private && f.uni !== p.university) return false;
         if (f.inst && (p.institutionType || "university") !== f.inst) return false;
         return true;
       })
@@ -460,13 +505,30 @@
       `<span class="tab-sep" aria-hidden="true"></span>` + tab("saved", "★ Shortlist");
     $("#tab-hint").textContent = sel ? TAB_HINTS[sel] : "";
     if (sel) $("#list").setAttribute("aria-labelledby", "tab-" + sel);
+    // The shortlist is always sorted by deadline, so the sort menu would do nothing there.
+    $("#f-sort").hidden = sel === "saved";
+    updateTabScroll(true);
 
     const items = sel === "saved" ? saved : all.filter(({ ev }) => ev.status === sel);
     if (!items.length) {
-      $("#list").innerHTML = `<div class="empty">No programmes match these filters.</div>`;
+      $("#list").innerHTML = `<div class="empty">No programmes match these filters.<br/><button type="button" class="link-btn" data-action="clear-filters">Clear all filters</button></div>`;
       return;
     }
     $("#list").innerHTML = items.map(({ p, ev }) => card(p, ev, sel === "saved")).join("");
+  }
+
+  /**
+   * Phones: the tab bar scrolls sideways. Fade its right edge while more tabs are hidden there,
+   * and (after a re-render) bring the selected tab into view.
+   */
+  function updateTabScroll(reveal) {
+    const bar = $("#status-tabs");
+    if (reveal) {
+      const t = bar.querySelector('[aria-selected="true"]');
+      if (t && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = Math.max(0, t.offsetLeft - bar.offsetLeft - 24);
+    }
+    bar.classList.toggle("more-right", bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
+    bar.classList.toggle("more-left", bar.scrollLeft > 4);
   }
 
   function card(p, ev, showStatus) {
@@ -483,9 +545,10 @@
     const soon = left >= 0 && left <= 45 && (toOpen === null || toOpen <= 0);
     const winStatus =
       left < 0 ? "Closed" :
-      toOpen !== null && toOpen > 0 ? `Opens in ${toOpen} days${a.opensApprox ? " (approx.)" : ""}` :
-      toOpen !== null ? `Open now · closes in ${left} days` :
-      `Closes in ${left} days`;
+      toOpen !== null && toOpen > 0 ? `Opens in ${days(toOpen)}${a.opensApprox ? " (approx.)" : ""}` :
+      left === 0 ? (toOpen !== null ? "Open now · closes today" : "Closes today") :
+      toOpen !== null ? `Open now · closes in ${days(left)}` :
+      `Closes in ${days(left)}`;
     const sameYear = a.opens && a.opens.slice(0, 4) === a.deadline.slice(0, 4);
     const opensTxt = a.opens
       ? (a.opensApprox ? "~" : "") + (sameYear ? parseDate(a.opens).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : fmtDate(a.opens))
@@ -499,7 +562,7 @@
     const todo = ev.checks.filter((c) => c.s === "fail" || c.s === "warn");
     const pending = ev.checks.filter((c) => c.s === "pending");
     if (pending.length) todo.push({ s: "pending", label: "Add to your profile:", detail: pending.map((c) => c.label).join(", ") });
-    const details = (c) => `${c.detail}${c.more ? " " + c.more : ""}`;
+    const details = (c) => `${c.full || c.detail}${c.more ? " " + c.more : ""}`;
 
     return `
 <article class="card">
@@ -538,9 +601,12 @@
         <p><strong>Your window${a.isEu ? " (EU/EEA citizens)" : p.application.eu ? " (non-EU)" : ""}:</strong> ${winText(a)}</p>
         ${otherWin ? `<p class="muted">${esc(otherWin)}</p>` : ""}
         <h4 style="margin-top:14px">Fees</h4>
-        <p>${p.fees.tuitionAll
-          ? `Tuition (everyone): ${fmtEuro(p.fees.tuitionAll)} per semester.`
-          : `Tuition (non-EU): ${p.fees.tuitionNonEU ? fmtEuro(p.fees.tuitionNonEU) + " per semester" : "none"}.`} ${sentence(p.fees.semester)}</p>
+        <p><strong>Tuition:</strong> ${p.fees.tuitionAll
+          ? `${fmtEuro(p.fees.tuitionAll)} per semester for everyone, EU citizens included.`
+          : state.profile.citizenship === "eu"
+            ? `none for EU/EEA citizens${p.fees.tuitionNonEU ? ` (non-EU: ${fmtEuro(p.fees.tuitionNonEU)} per semester)` : ""}.`
+            : p.fees.tuitionNonEU ? `${fmtEuro(p.fees.tuitionNonEU)} per semester for non-EU students.` : "none."}</p>
+        <p><strong>Semester contribution</strong> (everyone pays it): ${sentence(p.fees.semester)}</p>
         ${p.fees.tuitionNote ? `<p>${sentence(p.fees.tuitionNote)}</p>` : ""}
         ${p.fees.other ? `<p>${sentence(p.fees.other)}</p>` : ""}
       </div>
@@ -579,12 +645,13 @@
     const total = num(p.totalEcts);
     set("degree", [fieldLabel, total ? `${total} ECTS` : "", p.finished === "yes" ? "graduated" : "studying"].filter(Boolean).join(" · "), "");
     const de = germanGrade(p);
-    set("grade", de !== null && de <= 4 ? `${truncGrade(de).toFixed(1)}${p.gradeSource === "vpd" ? " (from your VPD)" : " (estimated)"}` : "", "Not added yet");
+    set("grade", de === null ? "" : de > 4 ? "Below passing (4.0)" : `${truncGrade(de).toFixed(1)}${p.gradeSource === "vpd" ? " (from your VPD)" : " (estimated)"}`, "Not added yet");
     const parts = [["business", "Business"], ["economics", "Econ"], ["math", "Math"], ["statistics", "Stats"], ["informatics", "IT"]]
       .filter(([c]) => ectsOf(c) > 0).map(([c, l]) => `${l} ${ectsOf(c)}`);
     set("credits", parts.join(" · "), "Not added yet");
     const enLabel = { none: "No English certificate", ielts: "IELTS", toefl: "TOEFL", toeflBand: "TOEFL band", medium: "English-taught bachelor" }[p.englishType];
-    const en = ["ielts", "toefl", "toeflBand"].includes(p.englishType) && p.englishScore ? `${enLabel} ${p.englishScore}` : enLabel;
+    const en = ["ielts", "toefl", "toeflBand"].includes(p.englishType) && p.englishScore
+      ? `${enLabel} ${p.englishScore}${englishScoreError() ? " (invalid)" : ""}` : enLabel;
     set("lang", [en, p.german === "none" ? "no German" : `German ${p.german}`, p.testType === "none" ? "" : p.testType].filter(Boolean).join(" · "), "");
   }
 
@@ -614,11 +681,30 @@
         render();
       });
     });
+    const fillForm = () => document.querySelectorAll("[data-key]").forEach((el) => (el.value = state.profile[el.dataset.key] ?? ""));
+    // Reset clears at once and offers Undo (no blocking confirm dialog). The shortlist is kept.
+    let undoTimer = null;
     $("#reset-profile").addEventListener("click", () => {
-      if (!window.confirm("Clear your whole profile? Your shortlist stays.")) return;
+      const before = { ...state.profile };
       state.profile = { ...DEFAULT_PROFILE };
-      document.querySelectorAll("[data-key]").forEach((el) => (el.value = state.profile[el.dataset.key] ?? ""));
+      fillForm();
       render();
+      document.querySelectorAll(".sec").forEach((d) => (d.open = true));
+      const note = $("#reset-note");
+      note.hidden = false;
+      clearTimeout(undoTimer);
+      undoTimer = setTimeout(() => (note.hidden = true), 10000);
+      $("#undo-reset").onclick = () => {
+        state.profile = before;
+        fillForm();
+        render();
+        note.hidden = true;
+      };
+    });
+    // Each scale has its own usual minimum pass grade; prefill it when the scale changes.
+    $('[data-key="gradeScale"]').addEventListener("input", () => {
+      const min = { tr4: "2.00", 100: "50" }[state.profile.gradeScale];
+      if (min) { state.profile.gradeMin = min; $('[data-key="gradeMin"]').value = min; render(); }
     });
   }
 
@@ -671,15 +757,19 @@
       moreBtn.textContent = n ? `More filters (${n})` : "More filters";
       moreBtn.classList.toggle("active", n > 0);
     };
-    $("#f-clear").addEventListener("click", () => {
-      Object.assign(f, { search: "", city: "", uni: "", lang: "", tuition: "", fields: [], notest: false, nogerman: false, private: false, inst: "" });
+    $("#status-tabs").addEventListener("scroll", () => updateTabScroll(false), { passive: true });
+    window.addEventListener("resize", () => updateTabScroll(false));
+    const clearFilters = () => {
+      Object.assign(f,{ search: "", city: "", uni: "", lang: "", tuition: "", fields: [], notest: false, nogerman: false, private: false, inst: "" });
       $("#f-search").value = ""; $("#f-field").value = ""; $("#f-location").value = "|";
       $("#f-lang").value = ""; $("#f-tuition").value = ""; $("#f-inst").value = "";
       $("#f-notest").checked = false; $("#f-nogerman").checked = false; $("#f-private").checked = false;
       render();
-    });
+    };
+    $("#f-clear").addEventListener("click", clearFilters);
 
     $("#list").addEventListener("click", (e) => {
+      if (e.target.closest('[data-action="clear-filters"]')) { clearFilters(); return; }
       const b = e.target.closest(".save-btn");
       if (!b) return;
       const id = b.dataset.id;
