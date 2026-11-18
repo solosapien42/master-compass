@@ -193,7 +193,7 @@
     if (!p.ectsRules.length) {
       add("info", "Subject ECTS", p.ectsNote || "No fixed subject minimums.");
     } else if (!hasAnyEcts()) {
-      add("pending", "Subject ECTS", "Enter your ECTS by subject to check: " + describeRules(p.ectsRules));
+      add("pending", "Subject ECTS", "Enter your ECTS by subject to check this.", "Required: " + describeRules(p.ectsRules) + ".");
     } else {
       const results = p.ectsRules.map((alt) => alt.map(evalCond));
       const passing = results.find((alt) => alt.every((c) => c.ok));
@@ -220,7 +220,7 @@
 
     // 4. Grade
     const de = germanGrade(prof);
-    if (de === null) add("pending", "Grade", gradeMissingMsg() + " " + p.grade.selection);
+    if (de === null) add("pending", "Grade", gradeMissingMsg(), p.grade.selection);
     else if (de > 4) add("fail", "Grade", `Your grade converts to ${de.toFixed(1)}, which is below passing (4.0).`);
     else {
       // German universities cut the grade after the first decimal (2.46 → 2.4) before comparing.
@@ -386,7 +386,7 @@
     const q = f.search.trim().toLowerCase();
     return PROGRAMS.map((p) => ({ p, ev: evaluate(p) }))
       .filter(({ p, ev }) => {
-        if (q && !(p.name + " " + p.university + " " + p.city).toLowerCase().includes(q)) return false;
+        if (q && !(p.name + " " + p.university + " " + p.city + " " + p.fields.map((x) => FIELD_LABELS[x]).join(" ")).toLowerCase().includes(q)) return false;
         if (f.city && p.city !== f.city) return false;
         if (f.uni && p.university !== f.uni) return false;
         if (f.lang && p.languageKey !== f.lang) return false;
@@ -495,7 +495,10 @@
     const lang = p.languageKey === "German/English" ? "German & English" : p.languageKey;
     const meta = [p.private ? "Private" : "", p.institutionType === "applied" ? "Applied sciences" : "", p.degree, lang, p.intake, fee > 0 ? `${fmtEuro(fee)} per semester` : "No tuition"].filter(Boolean);
     // On the card, show only what still needs attention; everything else sits under "details".
-    const todo = ev.checks.filter((c) => c.s === "fail" || c.s === "warn" || c.s === "pending");
+    // Missing profile inputs are the same on every card, so they collapse into one short line.
+    const todo = ev.checks.filter((c) => c.s === "fail" || c.s === "warn");
+    const pending = ev.checks.filter((c) => c.s === "pending");
+    if (pending.length) todo.push({ s: "pending", label: "Add to your profile:", detail: pending.map((c) => c.label).join(", ") });
     const details = (c) => `${c.detail}${c.more ? " " + c.more : ""}`;
 
     return `
@@ -612,6 +615,7 @@
       });
     });
     $("#reset-profile").addEventListener("click", () => {
+      if (!window.confirm("Clear your whole profile? Your shortlist stays.")) return;
       state.profile = { ...DEFAULT_PROFILE };
       document.querySelectorAll("[data-key]").forEach((el) => (el.value = state.profile[el.dataset.key] ?? ""));
       render();

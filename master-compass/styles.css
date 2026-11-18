@@ -7,7 +7,7 @@
   --line-strong: #cfd4df;
   --ink: #1b2030;
   --ink-2: #5a6274;
-  --ink-3: #8a91a2;
+  --ink-3: #6b7385; /* ≥4.5:1 on white and on --panel for small text */
   --accent: #2f4bc4;
   --accent-soft: #eef1fb;
   --miss: #a8372c;
