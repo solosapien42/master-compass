@@ -90,6 +90,7 @@
             <label>Overall grade on your VPD
               <input id="p-vpd-grade" type="number" step="0.1" min="1" max="4" data-key="vpdGrade" placeholder="e.g. 2.4" />
             </label>
+            <p class="hint warn-text" id="vpd-err" aria-live="polite"></p>
             <p class="hint">Universities rank you with this value, so it replaces our estimate.</p>
           </div>
           <div class="calc-wrap">
@@ -109,6 +110,7 @@
               <input id="p-grade-min" type="number" step="0.01" min="0" data-key="gradeMin" />
               <span class="hint" id="grade-min-hint">From your Diploma Supplement (4.2). Usually 2.00 on the 4.00 scale.</span>
             </label>
+            <p class="hint warn-text" id="grade-err" aria-live="polite"></p>
           </div>
           <p class="grade-out" id="grade-out" aria-live="polite"></p>
         </div>
@@ -142,6 +144,7 @@
             <label class="ects-row" for="e-engineering"><span>Engineering &amp; sciences</span>
               <input id="e-engineering" type="number" min="0" inputmode="numeric" data-key="ects.engineering" placeholder="0" /></label>
           </div>
+          <p class="hint warn-text" id="ects-err" aria-live="polite"></p>
           <p class="ects-total" id="ects-total" aria-live="polite"></p>
         </div>
       </details>
@@ -189,6 +192,7 @@
               <input id="p-test-score" type="number" min="0" data-key="testScore" />
             </label>
           </div>
+          <p class="hint warn-text" id="test-err" aria-live="polite"></p>
         </div>
       </details>
       <p class="hint save-note">Saved in this browser only.</p>

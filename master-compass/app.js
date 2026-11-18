@@ -130,7 +130,7 @@
     }
     const g = num(p.grade);
     if (g === null) return null;
-    if (p.gradeScale === "de") return g >= 1 && g <= 5 ? g : null;
+    if (p.gradeScale === "de") return g >= 1 && g <= 4 ? g : null;
     if (g < 0 || g > (p.gradeScale === "tr4" ? 4 : 100)) return null;
     const max = p.gradeScale === "tr4" ? 4 : 100;
     const min = num(p.gradeMin);
@@ -143,9 +143,9 @@
     const p = state.profile;
     if (p.gradeSource === "vpd") return "Enter the grade from your uni-assist VPD (1.0–4.0).";
     const g = num(p.grade);
-    const max = p.gradeScale === "tr4" ? 4 : p.gradeScale === "100" ? 100 : 5;
+    const max = p.gradeScale === "tr4" ? 4 : p.gradeScale === "100" ? 100 : 4;
     if (g === null) return "Enter your GPA to see your German grade.";
-    if (p.gradeScale === "de") return "Enter a German grade between 1.0 and 5.0.";
+    if (p.gradeScale === "de") return "Enter a passing German grade between 1.0 and 4.0.";
     if (g < 0 || g > max) return `Enter a GPA between 0 and ${max}.`;
     const min = num(p.gradeMin);
     if (min === null) return "Enter the minimum grade needed to graduate.";
@@ -267,10 +267,10 @@
       ? `${en.cefr === "English proof" ? "" : en.cefr + ": "}${[en.ielts != null ? "IELTS " + en.ielts.toFixed(1) : "", en.toefl != null ? "TOEFL iBT " + en.toefl : ""].filter(Boolean).join(" / ")}`
       : `${en.cefr} (see the official page for accepted tests)`;
     const score = num(prof.englishScore);
-    const range = { ielts: [0, 9], toefl: [0, 120], toeflBand: [1, 6] }[prof.englishType];
-    const badScore = range && score !== null && (score < range[0] || score > range[1]);
+    const lim = limitsFor("englishScore", prof);
+    const badScore = score !== null && !!rangeError("englishScore", prof);
     if (en.cefr === "none") add("ok", "English", en.note || "No English certificate required for admission.");
-    else if (badScore) add("pending", "English", `Enter a valid score (${range[0]}–${range[1]}).`);
+    else if (badScore) add("pending", "English", `Enter a valid score (${lim.min}–${lim.max}).`);
     else if (prof.englishType === "toeflBand") {
       // The 2026 TOEFL band scale (1–6) is aligned with CEFR A1–C2.
       const needIdx = CEFR.indexOf(en.cefr);
@@ -373,7 +373,7 @@
     }
     if (state.profile.gradeScale === "de") {
       el.classList.add("show");
-      el.innerHTML = de > 4 ? "This grade is below the German passing grade (4.0)." : `German grade <strong>${truncGrade(de).toFixed(1)}</strong>`;
+      el.innerHTML = `German grade <strong>${truncGrade(de).toFixed(1)}</strong>`;
       return;
     }
     el.classList.add("show");
@@ -382,18 +382,94 @@
       : `German grade ≈ <strong>${truncGrade(de).toFixed(1)}</strong><br/><span class="muted">Calculated ${de.toFixed(2)}; universities cut it after the first decimal. 1.0 is best.</span>`;
   }
 
-  /** Message if the entered English score is outside the test's range, else "". */
-  function englishScoreError() {
-    const p = state.profile;
-    const range = { ielts: [0, 9], toefl: [0, 120], toeflBand: [1, 6] }[p.englishType];
-    const s = num(p.englishScore);
-    return range && s !== null && (s < range[0] || s > range[1]) ? `Scores on this test go from ${range[0]} to ${range[1]}.` : "";
+  /**
+   * Allowed values for each number field: min, max, decimals (dec), half steps (half),
+   * the spinner step (spin) and a name used in messages. null = no limit for this choice.
+   */
+  function limitsFor(key, p = state.profile) {
+    const total = num(p.totalEcts);
+    const maxEcts = total > 0 && total <= MAX_ECTS ? total : MAX_ECTS;
+    if (key === "englishScore") return {
+      ielts: { min: 0, max: 9, dec: 1, half: true, name: "IELTS bands" },
+      toefl: { min: 0, max: 120, dec: 0, name: "TOEFL iBT scores" },
+      toeflBand: { min: 1, max: 6, dec: 1, half: true, name: "TOEFL iBT bands" },
+    }[p.englishType] || null;
+    if (key === "testScore") return {
+      GMAT: { min: 200, max: 805, dec: 0, name: "GMAT total scores" },
+      GRE: { min: 260, max: 340, dec: 0, name: "GRE total scores (verbal + quant)" },
+      GTEBS: { min: 70, max: 130, dec: 0, name: "GTEBS test values" },
+    }[p.testType] || null;
+    if (key === "vpdGrade") return { min: 1, max: 4, dec: 1, fix: 1, spin: 0.1, name: "VPD grades" };
+    if (key === "grade" || key === "gradeMin") return {
+      tr4: { min: 0, max: 4, dec: 2, fix: 2, spin: 0.01, name: "Grades on the 4.00 scale" },
+      100: { min: 0, max: 100, dec: 2, spin: 1, name: "Grades on the 100-point scale" },
+      de: { min: 1, max: 4, dec: 2, fix: 1, spin: 0.1, name: "Passing German grades" },
+    }[p.gradeScale] || null;
+    if (key === "totalEcts") return { min: 1, max: MAX_ECTS, dec: 1, name: "Bachelor credits" };
+    if (key === "completedEcts") return { min: 0, max: maxEcts, dec: 1, name: "Completed credits", over: total > 0 && total <= MAX_ECTS ? `Can't be more than your total ECTS (${total}).` : "" };
+    if (key.startsWith("ects.")) return { min: 0, max: maxEcts, dec: 1, name: "Subject credits", over: total > 0 && total <= MAX_ECTS ? `Can't be more than your total ECTS (${total}).` : "" };
+    return null;
   }
+  const MAX_ECTS = 360; // longest bachelor-level programmes (e.g. medicine) have 360 ECTS
+  const fmtLimit = (L, v) => (L.fix ? v.toFixed(L.fix) : String(v));
+
+  /** Why a just-typed value is refused (above max, negative, too many decimals, off-step), or "". */
+  function refuseReason(key, raw) {
+    const L = limitsFor(key);
+    const v = num(raw);
+    if (!L || v === null) return "";
+    if (v < 0) return "Negative numbers aren't possible here.";
+    if (v > L.max) return L.over || `${L.name} go up to ${fmtLimit(L, L.max)}.`;
+    const decimals = (String(raw).split(".")[1] || "").length;
+    if (decimals > L.dec) return L.dec === 0 ? `${L.name} are whole numbers.` : `Use at most ${L.dec} decimal${L.dec > 1 ? "s" : ""}.`;
+    if (L.half && !Number.isInteger(v * 2)) return `${L.name} go in steps of 0.5.`;
+    return "";
+  }
+
+  /** Message if a stored value is outside its allowed range (e.g. below the minimum), else "". */
+  function rangeError(key, p = state.profile) {
+    const L = limitsFor(key, p);
+    const v = num(p[key]);
+    if (!L || v === null) return "";
+    if (v < L.min || v > L.max) return `${L.name} go from ${fmtLimit(L, L.min)} to ${fmtLimit(L, L.max)}.`;
+    if (L.half && !Number.isInteger(v * 2)) return `${L.name} go in steps of 0.5.`;
+    if (key === "testScore" && p.testType === "GMAT" && v % 5 !== 0) return "GMAT totals end in 0 (classic exam, 200–800) or 5 (Focus Edition, 205–805).";
+    return "";
+  }
+  const englishScoreError = () => rangeError("englishScore");
+
+  // Where each field's inline message goes.
+  const errBox = (key) => key.startsWith("ects.") ? "#ects-err" : ({
+    englishScore: "#english-err", testScore: "#test-err", vpdGrade: "#vpd-err",
+    grade: "#grade-err", gradeMin: "#grade-err", totalEcts: "#credits-err", completedEcts: "#credits-err",
+  }[key] || null);
+  // A refused keystroke shows its reason for a few seconds, then the normal message returns.
+  let flashTimer = null;
+  function flashErr(key, msg) {
+    const sel = errBox(key);
+    if (!sel) return;
+    $(sel).textContent = msg;
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(syncFormVisibility, 4000);
+  }
+  // Don't nag about a too-low value while it is still being typed (6 → 60 → 605).
+  const typing = (key) => document.activeElement?.dataset?.key === key;
 
   function syncFormVisibility() {
     const p = state.profile;
     // Inline input problems, shown right under the field instead of only on the cards.
-    $("#english-err").textContent = englishScoreError();
+    clearTimeout(flashTimer);
+    $("#english-err").textContent = typing("englishScore") ? "" : englishScoreError();
+    $("#test-err").textContent = typing("testScore") ? "" : rangeError("testScore");
+    $("#vpd-err").textContent = $("#grade-err").textContent = $("#ects-err").textContent = "";
+    // Keep the browser's own min/max/step (spinner arrows, keyboard) in line with the limits.
+    document.querySelectorAll('input[type="number"][data-key]').forEach((inp) => {
+      const L = limitsFor(inp.dataset.key);
+      if (!L) return;
+      inp.min = L.min;
+      inp.max = L.max;
+      inp.step = L.half ? 0.5 : L.dec === 0 ? 1 : L.spin || 1;
+    });
     const tot = num(p.totalEcts), done = num(p.completedEcts);
     $("#credits-err").textContent =
       tot !== null && tot <= 0 ? "Total ECTS must be more than 0." :
@@ -422,6 +498,8 @@
       : "From your Diploma Supplement (4.2). Usually 2.00 on the 4.00 scale.";
     const gradeInput = $('[data-key="grade"]');
     gradeInput.placeholder = p.gradeScale === "tr4" ? "e.g. 3.20" : p.gradeScale === "100" ? "e.g. 78" : "e.g. 2.3";
+    $('[data-key="englishScore"]').placeholder = { ielts: "0–9, e.g. 6.5", toefl: "0–120, e.g. 90", toeflBand: "1–6, e.g. 4.5" }[p.englishType] || "";
+    $('[data-key="testScore"]').placeholder = { GMAT: "200–805, e.g. 605", GRE: "260–340, e.g. 315", GTEBS: "70–130, e.g. 105" }[p.testType] || "";
   }
 
   function filtered() {
@@ -670,6 +748,16 @@
       const key = el.dataset.key;
       el.value = state.profile[key] ?? "";
       el.addEventListener("input", () => {
+        if (el.type === "number") {
+          // Half-typed input like "6." or "-": wait for the next keystroke.
+          if (el.value === "" && el.validity.badInput) return;
+          const why = refuseReason(key, el.value);
+          if (why) {
+            el.value = state.profile[key] ?? "";
+            flashErr(key, why);
+            return;
+          }
+        }
         state.profile[key] = el.value;
         // A score only makes sense for the test it was entered for.
         const scoreKey = { englishType: "englishScore", testType: "testScore" }[key];
@@ -680,6 +768,8 @@
         }
         render();
       });
+      // Show "too low" messages once the user leaves the field.
+      if (el.type === "number") el.addEventListener("blur", syncFormVisibility);
     });
     const fillForm = () => document.querySelectorAll("[data-key]").forEach((el) => (el.value = state.profile[el.dataset.key] ?? ""));
     // Reset clears at once and offers Undo (no blocking confirm dialog). The shortlist is kept.
@@ -704,7 +794,11 @@
     // Each scale has its own usual minimum pass grade; prefill it when the scale changes.
     $('[data-key="gradeScale"]').addEventListener("input", () => {
       const min = { tr4: "2.00", 100: "50" }[state.profile.gradeScale];
-      if (min) { state.profile.gradeMin = min; $('[data-key="gradeMin"]').value = min; render(); }
+      if (min) { state.profile.gradeMin = min; $('[data-key="gradeMin"]').value = min; }
+      // A GPA means nothing on another scale (3.2 out of 4 is not 3.2 out of 100).
+      state.profile.grade = "";
+      $('[data-key="grade"]').value = "";
+      render();
     });
   }
 
