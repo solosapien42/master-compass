@@ -1,0 +1,20 @@
+# Checks the programme data on every branch except main and on pull requests.
+# (main is checked inside pages.yml, right before the site is published.)
+name: Check data
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check programme data
+        run: node scripts/check-data.js

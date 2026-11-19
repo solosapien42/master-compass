@@ -1,4 +1,5 @@
-# Publishes the master-compass/ folder to GitHub Pages on every push to main.
+# Publishes the master-compass/ folder to GitHub Pages on every push to main,
+# after the data check passes.
 name: Deploy site to GitHub Pages
 
 on:
@@ -16,7 +17,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Broken data stops the deploy, so the live site keeps its last good version.
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check programme data
+        run: node scripts/check-data.js
+
   deploy:
+    needs: check
     runs-on: ubuntu-latest
     environment:
       name: github-pages

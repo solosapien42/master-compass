@@ -23,6 +23,8 @@ master-compass/
     <university>.js one file per university
 build-artifact.ps1  builds artifact.html for publishing on claude.ai
 serve.ps1           local preview server (http://localhost:5173)
+scripts/
+  check-data.js     data check used by GitHub Actions (node scripts/check-data.js)
 ```
 
 ## Run locally
@@ -37,3 +39,11 @@ Then open http://localhost:5173.
 
 All requirements come from official university pages and admission regulations. They change every year, so every
 card shows a "last checked" date and links to the official source. Always confirm on the official page before applying.
+
+## Automatic checks (GitHub Actions)
+
+- **Data check** (`scripts/check-data.js`): runs on every push. On `main` it runs before publishing, so broken data
+  never reaches the live site. It also warns about deadlines that have passed and data not checked for a year.
+- **Link check** (`.github/workflows/check-links.yml`): every Monday it tests all official links in the data and opens a
+  "Broken links" issue if some fail. It closes the issue once they work again. Start it by hand from the Actions tab.
+- `main` is protected against force-pushes and deletion.

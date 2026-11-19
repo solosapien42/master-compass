@@ -1,0 +1,57 @@
+# Every Monday, checks all links in the programme data (official university pages).
+# If some are broken, it opens a "Broken links" issue (or updates the open one),
+# so GitHub emails the repo owner. Can also be started by hand from the Actions tab.
+name: Check links
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check links
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # 403/429: many university sites block automated visitors but work in a browser.
+          args: >-
+            --no-progress
+            --max-concurrency 6
+            --max-retries 3
+            --timeout 30
+            --accept "200..=299,403,429"
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+            "master-compass/data/*.js"
+          output: lychee/out.md
+          fail: false
+
+      - name: Open or update the "Broken links" issue
+        if: steps.lychee.outputs.exit_code != 0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create broken-links --color d73a4a --description "Found by the weekly link check" --force
+          num=$(gh issue list --label broken-links --state open --json number --jq '.[0].number')
+          if [ -n "$num" ]; then
+            gh issue edit "$num" --body-file lychee/out.md
+            gh issue comment "$num" --body "Link check ran again on $(date -u +%F); the list above is updated."
+          else
+            gh issue create --title "Broken links in programme data" --label broken-links --body-file lychee/out.md
+          fi
+
+      - name: Close the issue once all links work again
+        if: steps.lychee.outputs.exit_code == 0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          num=$(gh issue list --label broken-links --state open --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "$num" ]; then gh issue close "$num" --comment "All links work again ($(date -u +%F))."; fi
