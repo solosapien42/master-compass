@@ -172,7 +172,23 @@ for (const p of programs) {
   if (/\b(undefined|NaN)\b/.test(text)) err(id, 'the text contains "undefined" or "NaN"');
 }
 
-// ---------- 3. Report ----------
+// ---------- 3. Optional: write every source link for the link check ----------
+// `node scripts/check-data.js --links links.md` lists the finished URLs (the data files build
+// some of them from a shared base, so scanning the raw files would test half URLs).
+const linksAt = process.argv.indexOf("--links");
+if (linksAt > -1 && process.argv[linksAt + 1]) {
+  const byUrl = new Map();
+  for (const p of programs) for (const s of (p && Array.isArray(p.sources) ? p.sources : [])) {
+    if (!s || !/^https?:\/\//.test(s.url || "")) continue;
+    if (!byUrl.has(s.url)) byUrl.set(s.url, []);
+    byUrl.get(s.url).push(p.id);
+  }
+  const out = [...byUrl].map(([url, ids]) => `- <${url}> used by ${ids.slice(0, 3).join(", ")}${ids.length > 3 ? ` and ${ids.length - 3} more` : ""}`);
+  fs.writeFileSync(process.argv[linksAt + 1], out.join("\n") + "\n");
+  console.log(`Wrote ${byUrl.size} unique links to ${process.argv[linksAt + 1]}.`);
+}
+
+// ---------- 4. Report ----------
 const lines = [];
 lines.push(`Checked ${programs.length} programmes from ${listed.length - 1} data files.`);
 lines.push(errors.length ? `\n${errors.length} error(s):` : "\nNo errors.");

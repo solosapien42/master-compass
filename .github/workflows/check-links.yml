@@ -18,6 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # The data files build some URLs from a shared base, so list the finished links first.
+      - name: List all source links
+        run: node scripts/check-data.js --links links.md || true
+
       - name: Check links
         id: lychee
         uses: lycheeverse/lychee-action@v2
@@ -30,7 +34,7 @@ jobs:
             --timeout 30
             --accept "200..=299,403,429"
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
-            "master-compass/data/*.js"
+            links.md
           output: lychee/out.md
           fail: false
 
@@ -39,13 +43,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          { cat lychee/out.md; echo; echo "## Where these links are used"; grep -oE "<https?://[^>]+>" lychee/out.md | sort -u | while read -r u; do grep -F -- "$u" links.md || true; done; } > issue.md
           gh label create broken-links --color d73a4a --description "Found by the weekly link check" --force
           num=$(gh issue list --label broken-links --state open --json number --jq '.[0].number')
           if [ -n "$num" ]; then
-            gh issue edit "$num" --body-file lychee/out.md
+            gh issue edit "$num" --body-file issue.md
             gh issue comment "$num" --body "Link check ran again on $(date -u +%F); the list above is updated."
           else
-            gh issue create --title "Broken links in programme data" --label broken-links --body-file lychee/out.md
+            gh issue create --title "Broken links in programme data" --label broken-links --body-file issue.md
           fi
 
       - name: Close the issue once all links work again
