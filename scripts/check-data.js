@@ -128,7 +128,8 @@ for (const p of programs) {
 
   const t = p.test;
   if (!t || !TEST_STATUS.includes(t.status)) err(id, `test.status must be one of ${TEST_STATUS.join(", ")}`);
-  else if (t.status !== "none" && (!Array.isArray(t.accepted) || !t.accepted.length)) err(id, "test.accepted is empty although a test is optional or required");
+  else if (!Array.isArray(t.accepted)) err(id, "test.accepted must be a list");
+  else if ((t.status === "optional" || t.status === "required") && !t.accepted.length) err(id, "test.accepted is empty although a test is optional or required");
 
   const en = p.english;
   if (!en || !CEFR.includes(en.cefr)) err(id, `english.cefr must be one of ${CEFR.join(", ")}`);
