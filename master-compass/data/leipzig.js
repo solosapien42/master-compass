@@ -2,7 +2,7 @@
 (function () {
   const notice = {
     type: "warning",
-    text: "The faculty website of Leipzig University is being moved to a new address. During our check its programme and application pages returned errors or could not be reached. Most facts here therefore come from the DAAD database, official search-result extracts and older faculty pages, not from the current official pages. Many details are unverified. Check the official pages and AlmaWeb / uni-assist before applying.",
+    text: "Leipzig University's IT systems, including its website and the AlmaWeb application portal, are down after a cyberattack. The university expects the website and AlmaWeb back from 30 November 2026. Most programme and application pages could not be reached, so facts here come from the DAAD database, archived copies of faculty pages and the faculty's temporary site. Many details are unverified. Check the official pages and AlmaWeb / uni-assist before applying.",
   };
 
   const fees = {
@@ -13,7 +13,7 @@
   };
 
   const sharedCaveats = [
-    "Official faculty pages were not reachable during our check (site migration, 404 and connection errors). This is not a bot block. Facts come from the DAAD database and extracts of official pages.",
+    "Official faculty pages were not reachable during our check because of the university's IT outage after a cyberattack (website back from 30 November 2026). Facts come from the DAAD database and extracts of official pages.",
     "No subject-ECTS minimums could be verified, so none are checked here. Read the current admission and selection regulations.",
     "The total semester contribution could not be verified. Only the Deutschland-Semesterticket price (EUR 226.80 from winter 2026/27) is confirmed (Studentenwerk Leipzig).",
     "The exact 2027 application dates are not published yet. The dates here repeat the 2026 pattern (uni-assist for foreign degrees: 15 April to 31 May).",
@@ -51,7 +51,8 @@
   const sources = {
     daadBwl: { label: "DAAD database: Betriebswirtschaftslehre (Management Science), Leipzig", url: "https://www.daad.de/de/in-deutschland-studieren/hochschulen/alle-studiengaenge/detail/universitaet-leipzig-betriebswirtschaftslehre-management-science-w29883/?hec-id=w29883" },
     faculty: { label: "Faculty homepage (new address)", url: "https://www.uni-leipzig.de/wirtschaftswissenschaftliche-fakultaet/" },
-    bwlApply: { label: "Faculty page: Bewerbung Master BWL (older version)", url: "https://www.wifa.uni-leipzig.de/studium/studienbuero/mentoring/studieninteressierte/bewerbung-master-bwl.html" },
+    bwlApply: { label: "Faculty page: Bewerbung Master BWL (archived copy from 2021)", url: "https://web.archive.org/web/20210226192655/https://www.wifa.uni-leipzig.de/studium/studienbuero/mentoring/studieninteressierte/bewerbung-master-bwl.html" },
+    itOutage: { label: "Leipzig University: IT crisis update of 17 November 2026 (website and AlmaWeb back from 30 November)", url: "https://www.uni-leipzig.de/update-aus-dem-krisenstab-17-november-2026-zeitplan-fuer-den-wiederanlauf-der-it-systeme/" },
     fee: { label: "Studentenwerk Leipzig: semester fee", url: "https://www.studentenwerk-leipzig.de/en/semester-fee/" },
   };
 
@@ -92,7 +93,7 @@
         "English proof (B2)",
         "German proof (C1) for non-German degrees",
       ],
-      sources: [sources.daadBwl, sources.bwlApply, sources.faculty, sources.fee],
+      sources: [sources.daadBwl, sources.bwlApply, sources.faculty, sources.itOutage, sources.fee],
       caveats: [
         ...sharedCaveats,
         "Teaching language: DAAD says German is the main language and English additional. The extent of English courses is not stated.",
@@ -134,8 +135,9 @@
       ],
       sources: [
         { label: "DAAD database: Economics (National Economics), Leipzig", url: "https://www.daad.de/en/studying-in-germany/universities/all-degree-programmes/detail/university-of-leipzig-national-economics-economics-w29858/?hec-id=w29858" },
-        { label: "Faculty programme page (not reachable during our check)", url: "https://wifa.uni-leipzig.de/en/degree-programme/study-programmes/masters-degree-in-economics" },
+        { label: "Faculty programme page (archived copy from September 2025)", url: "https://web.archive.org/web/20250911093001/https://www.wifa.uni-leipzig.de/en/degree-programme/study-programmes/masters-degree-in-economics" },
         sources.faculty,
+        sources.itOutage,
         sources.fee,
       ],
       caveats: [
@@ -184,8 +186,9 @@
         "English proof (B2)",
       ],
       sources: [
-        { label: "Faculty programme page: QuESt (not reachable during our check)", url: "https://www.wifa.uni-leipzig.de/en/degree-programme/study-programmes/masters-degree-in-quantitative-economics-for-sustainability" },
+        { label: "Faculty module overview: Economics and QuESt, winter 2026/27 (PDF)", url: "https://www.uni-leipzig.de/wp-content/uploads/2026/11/WiFa_Master_Economics_Quest_Moduluebersicht_WiSe_2627.pdf" },
         sources.faculty,
+        sources.itOutage,
         sources.fee,
       ],
       caveats: [
@@ -235,6 +238,7 @@
         { label: "DAAD database: Wirtschaftsinformatik (Business Information Systems), Leipzig", url: "https://www.daad.de/de/in-deutschland-studieren/hochschulen/alle-studiengaenge/detail/universitaet-leipzig-wirtschaftsinformatik-business-information-systems-w29856/?hec-id=w29856" },
         { label: "Faculty module overview (new site)", url: "https://www.uni-leipzig.de/wp-content/uploads/2026/11/WiFa_MasterWinf_Module.pdf" },
         sources.faculty,
+        sources.itOutage,
         sources.fee,
       ],
       caveats: [

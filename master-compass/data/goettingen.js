@@ -4,7 +4,7 @@
 
   const src = {
     apply: { label: "Admission conditions of the faculty (admission-free vs restricted, application periods)", url: wiwi + "zulassungsbedingungen/678426.html" },
-    regs: { label: "Admission regulations (Ordnung über die Zugangsvoraussetzungen und über die Zulassung), version AM I 39/2025", url: wiwi + "version+am+i+39/27.11.2025/675192.html" },
+    regs: { label: "Admission regulations (Ordnung über die Zugangsvoraussetzungen und über die Zulassung), version AM I 39/2025", url: wiwi + "document/download/339d714983580e3dda4bf36a0003ee79.pdf/Management%20,%20MA-Stg%20ZZO%202.%20%C3%84nd.%20AM%202025-39.pdf" },
     fee: { label: "Semester contribution, Göttingen", url: "https://uni-goettingen.de/de/semesterbeitr%c3%a4ge/50655.html" },
   };
 

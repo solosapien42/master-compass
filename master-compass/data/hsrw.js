@@ -2,8 +2,8 @@
 (function () {
   const src = {
     masters: { label: "HSRW: Master's degrees (application periods, language levels)", url: "https://www.hochschule-rhein-waal.de/en/study/before-starting-university/application-process/masters-degrees" },
-    faq: { label: "HSRW: FAQs for prospective students", url: "https://www.hochschule-rhein-waal.de/en/academics/prospective-students/current-application-period/admission-requirements/faqs-prospective" },
-    regsSE: { label: "HSRW: examination regulations, Faculty of Society and Economics", url: "https://www.hochschule-rhein-waal.de/en/university/organisation/statutes-and-regulations/examination-regulations/society-and-economics" },
+    faq: { label: "HSRW: FAQs for prospective students (archived page on the old HSRW website)", url: "https://legacy.hochschule-rhein-waal.de/en/academics/prospective-students/current-application-period/admission-requirements/faqs-prospective" },
+    regsSE: { label: "HSRW: examination regulations, Faculty of Society and Economics", url: "https://www.hochschule-rhein-waal.de/en/about-us/organisation/regulations-and-legal-publications/examination-regulations/examination-regulations-of-the-faculty-of-society-and-economics" },
   };
 
   const fees = {
@@ -125,7 +125,7 @@
       documents: docsCommon,
       sources: [
         { label: "Programme page: International Management and Psychology, M.Sc.", url: "https://www.hochschule-rhein-waal.de/en/faculties/communication-and-environment/degree-programmes/master-degree-programmes/international" },
-        { label: "Examination regulations (2020, PDF)", url: "https://www.hochschule-rhein-waal.de/sites/default/files/documents/2023/05/12/2020-04-30_examination_regulations_international_management_and_psychology_msc.pdf" },
+        { label: "Examination regulations (2020, PDF)", url: "https://www.hochschule-rhein-waal.de/fileadmin/upload_redaktion/Dezernate/Rechtl_Akadem_Angelegenheiten/Pr%C3%BCfungsordnungen/PO_Fakult%C3%A4t_KU/Master/International_Management_and_Psychology/en/2020-04-30_examination_regulations_international_management_and_psychology_msc.pdf" },
         src.masters, src.faq,
       ],
       caveats: [
